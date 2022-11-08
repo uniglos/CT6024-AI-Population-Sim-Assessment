@@ -1,0 +1,13 @@
+Prey - Goal Oriented Action Planning
+Predator - State Machines
+
+Genes to be passed on, Speed, Vision, Hearing
+
+The faster an animal is the more hunger and thirst it uses up.
+The better vision an animal has, the worse hearing it has and vice versa
+
+Priority of Needs:
+Fleeing
+Thirst
+Hunger
+Reproduction
