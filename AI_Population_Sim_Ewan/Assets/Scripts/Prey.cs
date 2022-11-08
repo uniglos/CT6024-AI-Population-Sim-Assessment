@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//https://www.youtube.com/watch?v=rQG9aUWarwE
 public class Prey : MonoBehaviour
 {
     private int Hunger = 0;
@@ -10,7 +11,9 @@ public class Prey : MonoBehaviour
 
     private int MaxSpeed = 2;
     private int Vision = 2;
-    private int Hearing = 2;
+    private int Hearing = 20;
+
+    private Vector3 FinalPosition;
 
     [SerializeField]
     GameObject HearingSphere;
@@ -25,6 +28,8 @@ public class Prey : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //FinalPosition = new 
+        //gameObject.transform.position +=  Time.deltaTime * MaxSpeed;
         Discontentment = (Hunger*Hunger) + (Thirst*Thirst);
         if(Discontentment >= 20)
         {
@@ -47,6 +52,14 @@ public class Prey : MonoBehaviour
         //once prey can no longer hear or see a predator, resume previous behaviour
     }
 
+    public Vector3 PickRandomPoint()
+    {
+        var point = Random.insideUnitSphere * Hearing;
+
+        point.y = 0;
+        
+        return point;
+    }
     public void SeekFood()
     {
             Debug.Log("Looking for Food");
