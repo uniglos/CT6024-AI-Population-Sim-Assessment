@@ -9,11 +9,14 @@ public class Prey : MonoBehaviour
     private int Thirst = 0;
     private int Discontentment;
 
-    private int MaxSpeed = 2;
+    private float MaxSpeed = 0.2f;
     private int Vision = 2;
     private int Hearing = 20;
 
-    private Vector3 FinalPosition;
+    private Vector3 MovePosition;
+    private Vector3 CurrentPos;
+
+    private float Bounds = 10.0f;
 
     [SerializeField]
     GameObject HearingSphere;
@@ -23,13 +26,34 @@ public class Prey : MonoBehaviour
     void Start()
     {
         HearingSphere.GetComponent<SphereCollider>().radius = Hearing;
+        CurrentPos = gameObject.transform.position;
+        MovePosition = new Vector3(0.0f, 0.0f, 0.0f);
     }
 
     // Update is called once per frame
     void Update()
     {
-        //FinalPosition = new 
-        //gameObject.transform.position +=  Time.deltaTime * MaxSpeed;
+        if (gameObject.transform.position.x - (MovePosition.x + CurrentPos.x) < 1.0f && 
+            gameObject.transform.position.z - (MovePosition.z + CurrentPos.z) < 1.0f)
+        {
+            Debug.Log("Changed Direction");
+            MovePosition = PickRandomPoint();
+            CurrentPos = gameObject.transform.position;;
+            if(CurrentPos.x + MovePosition.x > Bounds || CurrentPos.z + MovePosition.z > Bounds
+                || CurrentPos.x + MovePosition.x < -Bounds || CurrentPos.z + MovePosition.z < -Bounds)
+            {
+                Debug.Log("Outside Range");
+                MovePosition = new Vector3(0f, 0f, 0f);
+            }
+        }
+        gameObject.transform.position +=  (MovePosition *  Time.deltaTime) * MaxSpeed;
+        
+
+        Debug.Log(gameObject.transform.position + ","+ CurrentPos);
+        Debug.Log(MovePosition);
+
+        
+
         Discontentment = (Hunger*Hunger) + (Thirst*Thirst);
         if(Discontentment >= 20)
         {
@@ -52,6 +76,10 @@ public class Prey : MonoBehaviour
         //once prey can no longer hear or see a predator, resume previous behaviour
     }
 
+    IEnumerator Wander()
+    {
+        yield return new WaitForSeconds(.1f);
+    }
     public Vector3 PickRandomPoint()
     {
         var point = Random.insideUnitSphere * Hearing;
