@@ -11,7 +11,7 @@ public class Prey : MonoBehaviour
 
     private float MaxSpeed = 0.2f;
     private int Vision = 2;
-    private int Hearing = 20;
+    private int Hearing = 2;
 
     private Vector3 MovePosition;
     private Vector3 CurrentPos;
@@ -20,6 +20,9 @@ public class Prey : MonoBehaviour
 
     [SerializeField]
     GameObject HearingSphere;
+
+    [SerializeField]
+    private HashSet<GameObject> LocationofResources;
 
     
     // Start is called before the first frame update
@@ -49,8 +52,8 @@ public class Prey : MonoBehaviour
         gameObject.transform.position +=  (MovePosition *  Time.deltaTime) * MaxSpeed;
         
 
-        Debug.Log(gameObject.transform.position + ","+ CurrentPos);
-        Debug.Log(MovePosition);
+        //Debug.Log(gameObject.transform.position + ","+ CurrentPos);
+        //Debug.Log(MovePosition);
 
         
 
@@ -58,7 +61,7 @@ public class Prey : MonoBehaviour
         if(Discontentment >= 20)
         {
             if(Thirst > Hunger)
-            { 
+            {
                 SeekWater(); 
             }
             else
@@ -91,6 +94,14 @@ public class Prey : MonoBehaviour
     public void SeekFood()
     {
             Debug.Log("Looking for Food");
+        foreach (GameObject i in LocationofResources)
+        {
+            if(i.gameObject.GetComponent<Resources>() != null 
+                && i.gameObject.GetComponent<Resources>().IsFood == true)
+            {
+                MovePosition = i.gameObject.transform.position;
+            }
+        }
         //Wander code
         //Attempt to find food nodes within vision cone
         //Check to see if there are predators nearby
@@ -117,5 +128,14 @@ public class Prey : MonoBehaviour
     public void Reproduce()
     {
         Debug.Log("Making Baby");
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.GetComponent<Resources>() != null)
+        {
+            Debug.Log("Added Resource");
+            LocationofResources.Add(other.gameObject);
+        }
     }
 }
