@@ -11,7 +11,7 @@ public class Prey : MonoBehaviour
 
     private float MaxSpeed = 0.2f;
     private int Vision = 2;
-    private int Hearing = 2;
+    private int Hearing = 20;
 
     private Vector3 MovePosition;
     private Vector3 CurrentPos;
@@ -22,7 +22,9 @@ public class Prey : MonoBehaviour
     GameObject HearingSphere;
 
     [SerializeField]
-    private HashSet<GameObject> LocationofResources;
+    HashSet<GameObject> LocationofResources;
+    //Maybe make this an array ^, of like 3 and have a memory value that increases the size of the array
+    
 
     
     // Start is called before the first frame update
@@ -93,12 +95,13 @@ public class Prey : MonoBehaviour
     }
     public void SeekFood()
     {
-            Debug.Log("Looking for Food");
+        //Debug.Log("Looking for Food");
         foreach (GameObject i in LocationofResources)
         {
             if(i.gameObject.GetComponent<Resources>() != null 
                 && i.gameObject.GetComponent<Resources>().IsFood == true)
             {
+                Debug.Log("Found Food");
                 MovePosition = i.gameObject.transform.position;
             }
         }
@@ -130,8 +133,9 @@ public class Prey : MonoBehaviour
         Debug.Log("Making Baby");
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
+        //Debug.Log("Something is triggered");
         if(other.gameObject.GetComponent<Resources>() != null)
         {
             Debug.Log("Added Resource");

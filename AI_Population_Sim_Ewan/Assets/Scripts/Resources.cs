@@ -19,4 +19,9 @@ public class Resources : MonoBehaviour
         
     }
 
+    private void OnTriggerStay(Collider other)
+    {
+       //Debug.Log("Something is triggered");
+    }
+
 }
