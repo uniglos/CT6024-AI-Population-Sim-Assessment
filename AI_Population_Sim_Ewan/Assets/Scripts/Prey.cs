@@ -9,9 +9,12 @@ public class Prey : MonoBehaviour
     private int Thirst = 0;
     private int Discontentment;
 
-    private float MaxSpeed = 0.2f;
+    private float MaxSpeed = 2f;
     private int Vision = 2;
     private int Hearing = 20;
+
+    private bool DontWander = false;
+    private bool TryToConsume = false;
 
     private Vector3 MovePosition;
     private Vector3 CurrentPos;
@@ -22,14 +25,23 @@ public class Prey : MonoBehaviour
     GameObject HearingSphere;
 
     [SerializeField]
-    HashSet<GameObject> LocationofResources;
-    //Maybe make this an array ^, of like 3 and have a memory value that increases the size of the array
-    
+    Collider MainBody;
 
-    
+    [SerializeField]
+    private GameObject LastFoodSeen;
+    [SerializeField]
+    private Vector3 LastWaterSeen;
+    //Maybe make this an array ^, of like 3 and have a memory value that increases the size of the array
+
+    //Debug Tool
+    public bool DisplayPos = false;
+
+
+
     // Start is called before the first frame update
     void Start()
     {
+        //MainBody = GameObject.GetComponent<SphereCollider>();
         HearingSphere.GetComponent<SphereCollider>().radius = Hearing;
         CurrentPos = gameObject.transform.position;
         MovePosition = new Vector3(0.0f, 0.0f, 0.0f);
@@ -38,20 +50,26 @@ public class Prey : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (gameObject.transform.position.x - (MovePosition.x + CurrentPos.x) < 1.0f && 
-            gameObject.transform.position.z - (MovePosition.z + CurrentPos.z) < 1.0f)
+        if (DisplayPos)
+        { Debug.Log(MovePosition); }
+
+        if (DontWander == false)
         {
-            Debug.Log("Changed Direction");
-            MovePosition = PickRandomPoint();
-            CurrentPos = gameObject.transform.position;;
-            if(CurrentPos.x + MovePosition.x > Bounds || CurrentPos.z + MovePosition.z > Bounds
-                || CurrentPos.x + MovePosition.x < -Bounds || CurrentPos.z + MovePosition.z < -Bounds)
+            if (gameObject.transform.position.x - (MovePosition.x ) < 1.0f &&
+                gameObject.transform.position.z - (MovePosition.z ) < 1.0f)
             {
-                Debug.Log("Outside Range");
-                MovePosition = new Vector3(0f, 0f, 0f);
+                Debug.Log("Changed Direction");
+                MovePosition = PickRandomPoint();
+                CurrentPos = gameObject.transform.position; ;
+                if (CurrentPos.x + MovePosition.x > Bounds || CurrentPos.z + MovePosition.z > Bounds
+                    || CurrentPos.x + MovePosition.x < -Bounds || CurrentPos.z + MovePosition.z < -Bounds)
+                {
+                    Debug.Log("Outside Range");
+                    MovePosition = new Vector3(0f, 0f, 0f);
+                }
             }
         }
-        gameObject.transform.position +=  (MovePosition *  Time.deltaTime) * MaxSpeed;
+        gameObject.transform.position =  Vector3.MoveTowards(transform.position,MovePosition, MaxSpeed *  Time.deltaTime);
         
 
         //Debug.Log(gameObject.transform.position + ","+ CurrentPos);
@@ -95,26 +113,51 @@ public class Prey : MonoBehaviour
     }
     public void SeekFood()
     {
-        //Debug.Log("Looking for Food");
-        foreach (GameObject i in LocationofResources)
+        Debug.Log("Looking for Food");
+        if(LastFoodSeen != null)
         {
-            if(i.gameObject.GetComponent<Resources>() != null 
-                && i.gameObject.GetComponent<Resources>().IsFood == true)
-            {
-                Debug.Log("Found Food");
-                MovePosition = i.gameObject.transform.position;
-            }
+            Debug.Log("Moving To Food");
+            MovePosition = LastFoodSeen.transform.position;
         }
+        if(transform.position == LastFoodSeen.transform.position)
+        {
+            Debug.Log("Arrived");
+            Consume(LastFoodSeen);
+            DontWander = false;
+        }
+       /* if (transform.position == MovePosition && LastFoodSeen != null)
+        {
+            Debug.Log("Arrived");
+            DontWander = false;
+            TryToConsume = true;
+        }
+        else
+        {
+            MovePosition = LastFoodSeen.transform.position;
+            DontWander = true;
+        }*/
+        
         //Wander code
         //Attempt to find food nodes within vision cone
         //Check to see if there are predators nearby
-            //If there are run away: This may be solved if the fleeing code is implemented well
+        //If there are run away: This may be solved if the fleeing code is implemented well
         //Otherwise approach food node to eat
         //Reset food meter/increase food meter depending on how much food there was
     }
     public void SeekWater()
     {
         Debug.Log("Seeking Water");
+        if (transform.position == MovePosition)
+        {
+            Debug.Log("Arrived");
+            DontWander = false;
+            TryToConsume = true;
+        }
+        else
+        {
+            MovePosition = LastWaterSeen;
+            DontWander = true;
+        }
         //Wander code
         //Attempt to find water nodes within vision cone
         //Check to see if there are predators nearby
@@ -133,13 +176,64 @@ public class Prey : MonoBehaviour
         Debug.Log("Making Baby");
     }
 
+    public void Consume(GameObject Resource)
+    {
+        if(transform.position.x - Resource.transform.position.x  < 1.0f 
+            && transform.position.z - Resource.transform.position.z < 1.0f)
+        {
+            if(Resource.GetComponent<Resources>().IsFood)
+            {
+                Hunger = Hunger - Resource.GetComponent<Resources>().FoodVal;
+                Destroy(Resource);
+            }
+            if (Resource.GetComponent<Resources>().IsWater)
+            {
+                Thirst = Thirst - Resource.GetComponent<Resources>().WaterVal;
+                Destroy(Resource);
+            }
+            DontWander = false;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("Something is triggered");
+        
+    }
+
     private void OnTriggerStay(Collider other)
     {
-        //Debug.Log("Something is triggered");
-        if(other.gameObject.GetComponent<Resources>() != null)
+        
+        
+        Debug.Log("Collided");
+        if (other.gameObject.GetComponent<Resources>() != null)
         {
-            Debug.Log("Added Resource");
-            LocationofResources.Add(other.gameObject);
-        }
+            Debug.Log("Resource Found");
+            if (LastFoodSeen.transform.position != other.gameObject.transform.position
+                && LastWaterSeen != other.gameObject.transform.position)
+            {
+                Debug.Log("Added Resource");
+                if (other.gameObject.GetComponent<Resources>().IsFood == true)
+                {
+                    LastFoodSeen = other.gameObject;
+                }
+                else if (other.gameObject.GetComponent<Resources>().IsWater == true)
+                {
+                    LastWaterSeen = other.gameObject.transform.position;
+                }
+            }
+        }/*
+        if(other.gameObject.GetComponent<Resources>() != null
+            && TryToConsume == true)
+        {
+            if(other.gameObject.GetComponent<Resources>().IsFood)
+            { Hunger = 0; }
+            if (other.gameObject.GetComponent<Resources>().IsWater)
+            { Thirst = 0; }
+            //Change these to be editable in the editor
+            TryToConsume = false;
+            DontWander = false;
+            Destroy(other.gameObject);
+        }*/
     }
 }
