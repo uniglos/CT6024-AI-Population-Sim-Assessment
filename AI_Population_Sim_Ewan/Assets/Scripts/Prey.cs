@@ -5,7 +5,9 @@ using UnityEngine;
 //https://www.youtube.com/watch?v=rQG9aUWarwE
 public class Prey : MonoBehaviour
 {
+    [SerializeField]
     private int Hunger = 0;
+    [SerializeField]
     private int Thirst = 0;
     private int Discontentment;
 
@@ -13,12 +15,18 @@ public class Prey : MonoBehaviour
     private int Vision = 2;
     private int Hearing = 20;
 
+    private bool EatArea = false;
+    Collider Collider;
+    RaycastHit hitInfo;
+
     private bool DontWander = false;
     private bool TryToConsume = false;
 
     private Vector3 MovePosition;
     private Vector3 CurrentPos;
 
+    [SerializeField]
+    [Range(1,20)]
     private float Bounds = 10.0f;
 
     [SerializeField]
@@ -28,9 +36,19 @@ public class Prey : MonoBehaviour
     Collider MainBody;
 
     [SerializeField]
-    private GameObject LastFoodSeen;
+    private Vector3 LastFoodSeen;
+    public Vector3 FoodLastSeen
+    {
+        get { return LastFoodSeen; }
+        set { LastFoodSeen = value; }
+    }
     [SerializeField]
     private Vector3 LastWaterSeen;
+    public Vector3 WaterLastSeen
+    {
+        get { return LastWaterSeen; }
+        set { LastWaterSeen = value; }
+    }
     //Maybe make this an array ^, of like 3 and have a memory value that increases the size of the array
 
     //Debug Tool
@@ -58,19 +76,20 @@ public class Prey : MonoBehaviour
             if (gameObject.transform.position.x - (MovePosition.x ) < 1.0f &&
                 gameObject.transform.position.z - (MovePosition.z ) < 1.0f)
             {
-                Debug.Log("Changed Direction");
+               // Debug.Log("Changed Direction");
                 MovePosition = PickRandomPoint();
                 CurrentPos = gameObject.transform.position; ;
                 if (CurrentPos.x + MovePosition.x > Bounds || CurrentPos.z + MovePosition.z > Bounds
                     || CurrentPos.x + MovePosition.x < -Bounds || CurrentPos.z + MovePosition.z < -Bounds)
                 {
-                    Debug.Log("Outside Range");
-                    MovePosition = new Vector3(0f, 0f, 0f);
+                   // Debug.Log("Outside Range");
+                    MovePosition = PickRandomPoint();
+                    
                 }
             }
         }
         gameObject.transform.position =  Vector3.MoveTowards(transform.position,MovePosition, MaxSpeed *  Time.deltaTime);
-        
+        gameObject.transform.LookAt(MovePosition);
 
         //Debug.Log(gameObject.transform.position + ","+ CurrentPos);
         //Debug.Log(MovePosition);
@@ -80,8 +99,10 @@ public class Prey : MonoBehaviour
         Discontentment = (Hunger*Hunger) + (Thirst*Thirst);
         if(Discontentment >= 20)
         {
+            //I believe this is still a state machine
             if(Thirst > Hunger)
             {
+                //Add SeekWater to a list of actions
                 SeekWater(); 
             }
             else
@@ -93,6 +114,7 @@ public class Prey : MonoBehaviour
         }
         Hunger += 1;
         Thirst += 1;
+        
         //if prey can hear predator, turn towards the noise to look
             //unless prey is already fleeing, in which case keep fleeing
         //if prey can see predator, run away
@@ -114,29 +136,20 @@ public class Prey : MonoBehaviour
     public void SeekFood()
     {
         Debug.Log("Looking for Food");
-        if(LastFoodSeen != null)
+        if(LastFoodSeen != new Vector3(0.0f,0.0f,0.0f))
         {
             Debug.Log("Moving To Food");
-            MovePosition = LastFoodSeen.transform.position;
-        }
-        if(transform.position == LastFoodSeen.transform.position)
+            MovePosition = LastFoodSeen;
+            DontWander = true;
+        }// if (transform.position == LastFoodSeen)
+        if (transform.position.x - LastFoodSeen.x < 1.5f
+            && transform.position.z - LastFoodSeen.z < 1.5f)
         {
             Debug.Log("Arrived");
             Consume(LastFoodSeen);
             DontWander = false;
         }
-       /* if (transform.position == MovePosition && LastFoodSeen != null)
-        {
-            Debug.Log("Arrived");
-            DontWander = false;
-            TryToConsume = true;
-        }
-        else
-        {
-            MovePosition = LastFoodSeen.transform.position;
-            DontWander = true;
-        }*/
-        
+              
         //Wander code
         //Attempt to find food nodes within vision cone
         //Check to see if there are predators nearby
@@ -147,16 +160,18 @@ public class Prey : MonoBehaviour
     public void SeekWater()
     {
         Debug.Log("Seeking Water");
-        if (transform.position == MovePosition)
+        if (LastWaterSeen != new Vector3(0.0f, 0.0f, 0.0f))
         {
-            Debug.Log("Arrived");
-            DontWander = false;
-            TryToConsume = true;
-        }
-        else
-        {
+            Debug.Log("Moving To Food");
             MovePosition = LastWaterSeen;
             DontWander = true;
+        }// if (transform.position == LastFoodSeen)
+        if (transform.position.x - LastWaterSeen.x < 1.5f
+            && transform.position.z - LastWaterSeen.z < 1.5f)
+        {
+            Debug.Log("Arrived");
+            Consume(LastWaterSeen);
+            DontWander = false;
         }
         //Wander code
         //Attempt to find water nodes within vision cone
@@ -176,22 +191,36 @@ public class Prey : MonoBehaviour
         Debug.Log("Making Baby");
     }
 
-    public void Consume(GameObject Resource)
+    public void Consume(Vector3 Resource)
     {
-        if(transform.position.x - Resource.transform.position.x  < 1.0f 
-            && transform.position.z - Resource.transform.position.z < 1.0f)
+        if(transform.position.x - Resource.x  < 10.0f 
+            && transform.position.z - Resource.z < 10.0f)
         {
-            if(Resource.GetComponent<Resources>().IsFood)
+            Debug.Log("In Range");
+            EatArea = Physics.BoxCast(transform.position, transform.localScale,
+                                        transform.forward, out /*RaycastHit*/ hitInfo, new Quaternion(0f,0f,0f,0f),0.1f, LayerMask.GetMask("Resources")  ,QueryTriggerInteraction.Collide);
+            if (EatArea)
             {
-                Hunger = Hunger - Resource.GetComponent<Resources>().FoodVal;
-                Destroy(Resource);
+                Debug.Log("Eat attempted");
+                if (hitInfo.transform.GetComponent<Resources>().IsFood)
+                {
+                    Hunger = Hunger - hitInfo.transform.GetComponent<Resources>().FoodVal;
+                    Destroy(hitInfo.transform.gameObject);
+                    LastFoodSeen = new Vector3(0.0f, 0.0f, 0.0f);
+                }
+                if (hitInfo.transform.GetComponent<Resources>().IsWater)
+                {
+                    Thirst = Thirst - hitInfo.transform.GetComponent<Resources>().WaterVal;
+                    Destroy(hitInfo.transform.gameObject);
+                    LastWaterSeen = new Vector3(0.0f, 0.0f, 0.0f);
+                }
             }
-            if (Resource.GetComponent<Resources>().IsWater)
+            else
             {
-                Thirst = Thirst - Resource.GetComponent<Resources>().WaterVal;
-                Destroy(Resource);
+                DontWander = false;
+                //LastFoodSeen = new Vector3(0.0f, 0.0f, 0.0f);
             }
-            DontWander = false;
+            
         }
     }
 
@@ -201,39 +230,26 @@ public class Prey : MonoBehaviour
         
     }
 
-    private void OnTriggerStay(Collider other)
+    void OnDrawGizmos()
     {
-        
-        
-        Debug.Log("Collided");
-        if (other.gameObject.GetComponent<Resources>() != null)
+        Gizmos.color = Color.red;
+
+        //Check if there has been a hit yet
+        if (EatArea)
         {
-            Debug.Log("Resource Found");
-            if (LastFoodSeen.transform.position != other.gameObject.transform.position
-                && LastWaterSeen != other.gameObject.transform.position)
-            {
-                Debug.Log("Added Resource");
-                if (other.gameObject.GetComponent<Resources>().IsFood == true)
-                {
-                    LastFoodSeen = other.gameObject;
-                }
-                else if (other.gameObject.GetComponent<Resources>().IsWater == true)
-                {
-                    LastWaterSeen = other.gameObject.transform.position;
-                }
-            }
-        }/*
-        if(other.gameObject.GetComponent<Resources>() != null
-            && TryToConsume == true)
+            //Draw a Ray forward from GameObject toward the hit
+            Gizmos.DrawRay(transform.position, transform.forward * hitInfo.distance);
+            //Draw a cube that extends to where the hit exists
+            Gizmos.DrawWireCube(transform.position + transform.forward * hitInfo.distance, transform.localScale);
+        }
+        //If there hasn't been a hit yet, draw the ray at the maximum distance
+        else
         {
-            if(other.gameObject.GetComponent<Resources>().IsFood)
-            { Hunger = 0; }
-            if (other.gameObject.GetComponent<Resources>().IsWater)
-            { Thirst = 0; }
-            //Change these to be editable in the editor
-            TryToConsume = false;
-            DontWander = false;
-            Destroy(other.gameObject);
-        }*/
+            //Draw a Ray forward from GameObject toward the maximum distance
+            Gizmos.DrawRay(transform.position, transform.forward * 3.1f);
+            //Draw a cube at the maximum distance
+            Gizmos.DrawWireCube(transform.position + transform.forward * 3.1f, transform.localScale * 5f);
+        }
     }
+
 }
