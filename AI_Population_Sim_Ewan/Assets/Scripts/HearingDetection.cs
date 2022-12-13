@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class HearingDetection : MonoBehaviour
 {
-    private Vector3 FoodSeenPos;
-    private Vector3 LastFoodSeenPos;
+    
+    private Vector3 SeenPos;
+    private Vector3 LastPos;
 
-    private Vector3 WaterSeenPos;
-    private Vector3 LastWaterSeenPos;
+    Prey prey;
     // Start is called before the first frame update
     void Start()
     {
-        
+        prey = transform.GetComponentInParent<Prey>();
     }
 
     // Update is called once per frame
@@ -23,28 +23,21 @@ public class HearingDetection : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         Debug.Log("Something is triggered");
-        if (other.gameObject.GetComponent<Resources>() != null)
+
+        if (other.gameObject.TryGetComponent(out Resources resource))
         {
             Debug.Log("Resource Found");
-            if (LastFoodSeenPos != other.gameObject.transform.position
-                && LastWaterSeenPos != other.gameObject.transform.position)
+
+            Debug.Log("Added " + resource.resource.ToString());
+            LastPos = other.gameObject.transform.position;
+
+
+            if (!prey.resource.Contains(resource))
             {
-                
-                if (other.gameObject.GetComponent<Resources>().IsFood == true)
-                {
-                    Debug.Log("Added Food");
-                    LastFoodSeenPos = other.gameObject.transform.position;
-                    transform.GetComponentInParent<Prey>().FoodLastSeen = LastFoodSeenPos;
-                }
-                if (other.gameObject.GetComponent<Resources>().IsWater == true)
-                {
-                    Debug.Log("Water Added");
-                    LastWaterSeenPos = other.gameObject.transform.position;
-                    transform.GetComponentInParent<Prey>().WaterLastSeen = LastWaterSeenPos;
-                }
+                prey.resource.Add(resource);
             }
         }
-        
+               
         
     }
 }
