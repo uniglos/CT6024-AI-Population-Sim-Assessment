@@ -364,7 +364,7 @@ GameObject:
   - component: {fileID: 912129661}
   - component: {fileID: 912129660}
   m_Layer: 6
-  m_Name: Food (1)
+  m_Name: Water
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -385,7 +385,7 @@ MonoBehaviour:
   IsWater: 1
   IsFood: 0
   ThisResource: {fileID: 0}
-  FoodVal: 10
+  FoodVal: 0
   WaterVal: 10
 --- !u!65 &912129661
 BoxCollider:
@@ -458,7 +458,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 912129659}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12.01, y: 0, z: -3.45}
+  m_LocalPosition: {x: 1.49, y: 0, z: 3.37}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -648,7 +648,7 @@ MonoBehaviour:
   IsFood: 1
   ThisResource: {fileID: 0}
   FoodVal: 10
-  WaterVal: 10
+  WaterVal: 0
 --- !u!65 &1807392467
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -850,6 +850,16 @@ PrefabInstance:
     serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6221867704335868304, guid: 3bb3cdf1477de4c4d96b758a651e4f3f,
+        type: 3}
+      propertyPath: Hunger
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6221867704335868304, guid: 3bb3cdf1477de4c4d96b758a651e4f3f,
+        type: 3}
+      propertyPath: Thirst
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6221867704335868304, guid: 3bb3cdf1477de4c4d96b758a651e4f3f,
         type: 3}
       propertyPath: MainBody

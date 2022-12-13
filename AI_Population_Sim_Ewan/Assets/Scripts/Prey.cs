@@ -162,12 +162,11 @@ public class Prey : MonoBehaviour
         Debug.Log("Seeking Water");
         if (LastWaterSeen != new Vector3(0.0f, 0.0f, 0.0f))
         {
-            Debug.Log("Moving To Food");
+            Debug.Log("Travelling to Water");
             MovePosition = LastWaterSeen;
             DontWander = true;
         }// if (transform.position == LastFoodSeen)
-        if (transform.position.x - LastWaterSeen.x < 1.5f
-            && transform.position.z - LastWaterSeen.z < 1.5f)
+        if (Vector3.Distance(transform.position, LastWaterSeen) < 1.5f)
         {
             Debug.Log("Arrived");
             Consume(LastWaterSeen);
@@ -197,29 +196,38 @@ public class Prey : MonoBehaviour
             && transform.position.z - Resource.z < 10.0f)
         {
             Debug.Log("In Range");
-            EatArea = Physics.BoxCast(transform.position, transform.localScale,
-                                        transform.forward, out /*RaycastHit*/ hitInfo, new Quaternion(0f,0f,0f,0f),0.1f, LayerMask.GetMask("Resources")  ,QueryTriggerInteraction.Collide);
-            if (EatArea)
-            {
-                Debug.Log("Eat attempted");
-                if (hitInfo.transform.GetComponent<Resources>().IsFood)
+            Collider[] hitInfo = Physics.OverlapSphere(transform.position, transform.localScale.magnitude * 2);
+
+            //EatArea = Physics.BoxCast(transform.position, transform.localScale,
+            //                            transform.forward, out /*RaycastHit*/ hitInfo, new Quaternion(0f,0f,0f,0f),0.1f, LayerMask.GetMask("Resources")  );
+            
+                foreach (var c in hitInfo)
                 {
-                    Hunger = Hunger - hitInfo.transform.GetComponent<Resources>().FoodVal;
-                    Destroy(hitInfo.transform.gameObject);
-                    LastFoodSeen = new Vector3(0.0f, 0.0f, 0.0f);
-                }
-                if (hitInfo.transform.GetComponent<Resources>().IsWater)
+                if (c.TryGetComponent(out Resources i))
                 {
-                    Thirst = Thirst - hitInfo.transform.GetComponent<Resources>().WaterVal;
-                    Destroy(hitInfo.transform.gameObject);
-                    LastWaterSeen = new Vector3(0.0f, 0.0f, 0.0f);
+                    if (i.IsWater)
+                    {
+                        Thirst = Thirst - i.WaterVal;
+                        Destroy(i.gameObject);
+                        LastWaterSeen = new Vector3(0.0f, 0.0f, 0.0f);
+                    }
+                    if (i.IsFood)
+                    {
+                        Hunger = Hunger - i.FoodVal;
+                        Destroy(i.gameObject);
+                        LastFoodSeen = new Vector3(0.0f, 0.0f, 0.0f);
+                    }
                 }
-            }
-            else
-            {
-                DontWander = false;
-                //LastFoodSeen = new Vector3(0.0f, 0.0f, 0.0f);
-            }
+                    
+               
+                }
+                
+            
+            //else
+            //{
+            //    DontWander = false;
+            //    //LastFoodSeen = new Vector3(0.0f, 0.0f, 0.0f);
+            //}
             
         }
     }
@@ -246,9 +254,9 @@ public class Prey : MonoBehaviour
         else
         {
             //Draw a Ray forward from GameObject toward the maximum distance
-            Gizmos.DrawRay(transform.position, transform.forward * 3.1f);
+            Gizmos.DrawRay(transform.position, transform.forward );
             //Draw a cube at the maximum distance
-            Gizmos.DrawWireCube(transform.position + transform.forward * 3.1f, transform.localScale * 5f);
+            Gizmos.DrawWireCube(transform.position + transform.forward , transform.localScale );
         }
     }
 
