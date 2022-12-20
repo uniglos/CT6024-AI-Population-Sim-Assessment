@@ -11,8 +11,15 @@ public enum resourceType {
 
 public class Resources : MonoBehaviour
 {
-    public resourceType resource;
+    public resourceType resourceType;
  
     public int ResourceVal = 10;
+
+    public void Overlap()
+    {
+        
+            Destroy(this.gameObject);
+        
+    }
 
 }

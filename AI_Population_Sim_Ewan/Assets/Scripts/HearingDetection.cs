@@ -28,16 +28,34 @@ public class HearingDetection : MonoBehaviour
         {
             Debug.Log("Resource Found");
 
-            Debug.Log("Added " + resource.resource.ToString());
+            Debug.Log("Added " + resource.resourceType.ToString());
             LastPos = other.gameObject.transform.position;
 
 
-            if (!prey.resource.Contains(resource))
+            if (!prey.resourceList.Contains(resource))
             {
-                prey.resource.Add(resource);
+                prey.resourceList.Add(resource);
             }
         }
-               
-        
+        if(other.gameObject.TryGetComponent(out Predator_BT predator))
+        {
+            Debug.Log("Danger");
+            if(!prey.predators.Contains(predator))
+            {
+                prey.predators.Add(predator);
+            }
+
+        }        
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if(other.gameObject.TryGetComponent(out Predator_BT predator))
+        {
+            if(prey.predators.Contains(predator))
+            {
+                prey.predators.Remove(predator);
+            }
+        }
     }
 }
