@@ -239,13 +239,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98b1ff45330611e488c94c0d355db4f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PreyPrefab: {fileID: 6221867704335868305}
   Hunger: 0
   Thirst: 0
+  NeedToMate: 0
+  Tolerance: 100
+  MaxSpeed: 2
+  MaxRand: 3
+  MinRand: 0.5
+  Vision: 2
+  Hearing: 10
   Bounds: 50
   HearingSphere: {fileID: 6221867703439579280}
   MainBody: {fileID: 6221867704335868399}
   resourceList: []
   predators: []
+  preyList: []
+  Prey_Reproduce: {fileID: 0}
   DisplayPos: 0
 --- !u!54 &6221867704335868395
 Rigidbody:

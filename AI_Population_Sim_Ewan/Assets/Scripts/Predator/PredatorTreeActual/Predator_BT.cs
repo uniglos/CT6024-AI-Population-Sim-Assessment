@@ -11,6 +11,7 @@ public class Predator_BT : BTree
     //-------------------
     public int Hunger = 10;
     public int Thirst = 0;
+    public int NeedToMate = 0;
     public int Tolerance = 100;
 
     public float NeedTimer = 0.0f;
@@ -20,6 +21,9 @@ public class Predator_BT : BTree
         
         Predator_Node root = new BT_Selector(new List<Predator_Node>
         {
+            //new BT_Sequence(new List<Predator_Node>
+            //{ new PBT_Reproduce(transform,gameObject),
+            //}),
             //Find Food action sequence
             new BT_Sequence(new List<Predator_Node>
             { new PBT_KillNEat(transform,gameObject),

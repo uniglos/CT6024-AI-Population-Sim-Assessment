@@ -5,6 +5,8 @@ using UnityEngine;
 //https://www.youtube.com/watch?v=rQG9aUWarwE
 public class Prey : MonoBehaviour
 {
+    public GameObject PreyPrefab;
+
     [SerializeField]
     private int Hunger = 0;
     [SerializeField]
@@ -15,14 +17,14 @@ public class Prey : MonoBehaviour
     private float timer = 3;
 
     //Traits-------------------------------
-    private int Tolerance = 100;
+    public int Tolerance = 100;
 
-    private float MaxSpeed = 2f;
-    private float MaxRand = 3f;
-    private float MinRand = 0.5f;
+    public float MaxSpeed = 2f;
+    public float MaxRand = 3f;
+    public float MinRand = 0.5f;
 
-    private int Vision = 2;
-    private int Hearing = 10;
+    public int Vision = 2;
+    public int Hearing = 10;
     
     //-------------------------------------
     private bool EatArea = false;
@@ -53,6 +55,8 @@ public class Prey : MonoBehaviour
 
     //List of detected prey
     public List<GameObject> preyList;
+
+    public Prey_Reproduce Prey_Reproduce;
 
     private float NeedTimer = 5;
 
@@ -203,15 +207,19 @@ public class Prey : MonoBehaviour
         NeedTimer -= Time.deltaTime;
         if (NeedTimer <= 0.0f)
         {
-            Hunger += 0;
-            Thirst += 0;
-            NeedToMate += 100;
+            Hunger += 1;
+            Thirst += 1;
+            NeedToMate += 1;
             NeedTimer = 6 - MaxSpeed;
         }
         if(NeedToMate >= Tolerance)
         {
             Debug.Log("Conditions Met");
             Reproduce();
+        }
+        if(Hunger >=Tolerance||Thirst>=Tolerance)
+        {
+            Die();
         }
     }
 
@@ -252,6 +260,9 @@ public class Prey : MonoBehaviour
             if(i.GetComponent<Prey>())
             {
                 Debug.Log("The Magic of procreation");
+                //Instatiate Function
+                NeedToMate = 0;
+                Procreate(gameObject,i);
             }
         }
     }
@@ -299,6 +310,34 @@ public class Prey : MonoBehaviour
         }
         MovePosition = closestMate.transform.position;
         Debug.Log("Making Baby");
+    }
+
+    public void Procreate(GameObject self, GameObject other)
+    {
+        bool hasProcreated = false;
+        Prey SelfGenes = self.GetComponent<Prey>();
+        Prey OtherGenes = other.GetComponent<Prey>();
+        //Mix genes
+        float _MaxSpeed = Random.Range(SelfGenes.MaxSpeed, OtherGenes.MaxSpeed);
+        float _MaxRand = Random.Range(SelfGenes.MaxRand, OtherGenes.MaxRand);
+        float _MinRand = Random.Range(SelfGenes.MinRand, OtherGenes.MinRand);
+        int _Hearing = Random.Range(SelfGenes.Hearing, OtherGenes.Hearing);
+        int _Tolerance = Random.Range(SelfGenes.Tolerance, OtherGenes.Tolerance);
+        if (hasProcreated == false)
+        {
+            GameObject prefabInstance = Instantiate(PreyPrefab);
+            Prey ChildGenes = prefabInstance.GetComponent<Prey>();
+
+            ChildGenes.MaxSpeed = _MaxSpeed;
+            ChildGenes.MaxRand = _MaxRand;
+            ChildGenes.MinRand = _MinRand;
+            ChildGenes.Hearing = _Hearing;
+            ChildGenes.Tolerance = _Tolerance;
+            ChildGenes.MaxSpeed = _MaxSpeed;
+            hasProcreated = true;
+            NeedToMate = 0;
+        }
+        
     }
 
     public void Consume(GameObject Resource)

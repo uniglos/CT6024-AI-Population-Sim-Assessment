@@ -23,7 +23,12 @@ public class Predator_Needs : MonoBehaviour
         {
             Predator_BT.Hunger += 1;
             Predator_BT.Thirst += 1;
+            Predator_BT.NeedToMate += 1;
             NeedTimer = 6 - Predator_BT.speed;
+        }
+        if(Predator_BT.Hunger >= Predator_BT.Tolerance || Predator_BT.Thirst >= Predator_BT.Tolerance)
+        {
+            Destroy(gameObject);
         }
     }
 }
