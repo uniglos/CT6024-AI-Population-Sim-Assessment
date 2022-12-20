@@ -27,7 +27,18 @@ public class PBT_Wander : Predator_Node
             timer = 0.0f;
         }
         timer += Time.deltaTime;
-        _transform.position += (_transform.forward * _speed * Time.deltaTime);
+        if (((_transform.position.x + (_transform.forward.x * _speed * Time.deltaTime)) <= 50.0f)
+            && ((_transform.position.x + (_transform.forward.x * _speed * Time.deltaTime)) >= -50.0f)
+            && ((_transform.position.z + (_transform.forward.z * _speed * Time.deltaTime)) <= 50.0f)
+            && ((_transform.position.z + (_transform.forward.z * _speed * Time.deltaTime)) >= -50.0f))
+        {
+            _transform.position += (_transform.forward * _speed * Time.deltaTime);
+        }
+        else 
+        {
+            _transform.Rotate(0, _transform.rotation.y + Random.Range(-90.0f, 90.0f), 0);
+            timer = -3.0f;
+        }
         state = NodeState.RUNNING;
         return state;
     }

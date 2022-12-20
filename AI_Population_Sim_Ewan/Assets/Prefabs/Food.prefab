@@ -110,5 +110,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e31c2cd8ce2d56a4189debdd5cfb6232, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resource: 0
+  prey: {fileID: 6221867704335868304, guid: 3bb3cdf1477de4c4d96b758a651e4f3f, type: 3}
+  resourceType: 0
   ResourceVal: 10

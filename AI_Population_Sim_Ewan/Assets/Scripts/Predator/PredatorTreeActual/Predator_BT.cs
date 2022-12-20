@@ -7,9 +7,9 @@ public class Predator_BT : BTree
 {
     //Traits------
     public float speed = 3.0f;
-    public float vision = 10.0f;
+    public float vision = 6.0f;
     //-------------------
-    public int Hunger = 0;
+    public int Hunger = 10;
     public int Thirst = 0;
     public int Tolerance = 100;
 

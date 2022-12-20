@@ -22,13 +22,13 @@ public class HearingDetection : MonoBehaviour
     }
     private void OnTriggerStay(Collider other)
     {
-        Debug.Log("Something is triggered");
+        //Debug.Log("Something is triggered");
 
         if (other.gameObject.TryGetComponent(out Resources resource))
         {
-            Debug.Log("Resource Found");
+            //Debug.Log("Resource Found");
 
-            Debug.Log("Added " + resource.resourceType.ToString());
+           // Debug.Log("Added " + resource.resourceType.ToString());
             LastPos = other.gameObject.transform.position;
 
 
@@ -39,13 +39,26 @@ public class HearingDetection : MonoBehaviour
         }
         if(other.gameObject.TryGetComponent(out Predator_BT predator))
         {
-            Debug.Log("Danger");
+            //Debug.Log("Danger");
             if(!prey.predators.Contains(predator))
             {
                 prey.predators.Add(predator);
             }
 
-        }        
+        }
+        if (other.gameObject.TryGetComponent(out Prey p))
+        {
+            
+                if (!prey.preyList.Contains(p.gameObject))
+                {
+                    prey.preyList.Add(p.gameObject);
+                }
+            if (this.transform.parent.GetInstanceID() == p.transform.GetInstanceID())
+            {
+                prey.preyList.Remove(p.gameObject);
+            }
+
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -57,5 +70,13 @@ public class HearingDetection : MonoBehaviour
                 prey.predators.Remove(predator);
             }
         }
-    }
+        if (other.gameObject.TryGetComponent(out Prey p))
+        {
+
+            if (prey.preyList.Contains(p.gameObject))
+            {
+                prey.preyList.Remove(p.gameObject);
+            }
+        }
+        }
 }

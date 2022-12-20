@@ -9,13 +9,22 @@ public class Prey : MonoBehaviour
     private int Hunger = 0;
     [SerializeField]
     private int Thirst = 0;
+    [SerializeField]
+    private int NeedToMate = 0;
     private int Discontentment;
+    private float timer = 3;
+
+    //Traits-------------------------------
     private int Tolerance = 100;
 
     private float MaxSpeed = 2f;
+    private float MaxRand = 3f;
+    private float MinRand = 0.5f;
+
     private int Vision = 2;
     private int Hearing = 10;
-
+    
+    //-------------------------------------
     private bool EatArea = false;
     Collider Collider;
     RaycastHit hitInfo;
@@ -27,8 +36,8 @@ public class Prey : MonoBehaviour
     private Vector3 CurrentPos;
 
     [SerializeField]
-    [Range(1, 20)]
-    private float Bounds = 10.0f;
+    [Range(1, 100)]
+    private float Bounds = 50.0f;
 
     [SerializeField]
     GameObject HearingSphere;
@@ -41,6 +50,9 @@ public class Prey : MonoBehaviour
 
     //List of detected predators
     public List<Predator_BT> predators;
+
+    //List of detected prey
+    public List<GameObject> preyList;
 
     private float NeedTimer = 5;
 
@@ -75,11 +87,11 @@ public class Prey : MonoBehaviour
 
         if (i.resourceType == resourceType.Food && ThirstNeed > HungerNeed)
         {
-            Value *= 2;
+            Value *= 20;
         }
         else if (i.resourceType == resourceType.Water && ThirstNeed < HungerNeed)
         {
-            Value *= 2;
+            Value *= 20;
         }
         score = Value - Mathf.RoundToInt(Distance);
         // Hunger - Thirst, if negative need water, if positive need food,
@@ -103,32 +115,44 @@ public class Prey : MonoBehaviour
 
         if (DontWander == false)
         {
-            Debug.Log("Wandering");
-            if (gameObject.transform.position.x - (MovePosition.x) < 1.0f &&
-                gameObject.transform.position.z - (MovePosition.z) < 1.0f)
+            //Debug.Log("Wandering");
+            if (timer > Random.Range(MaxRand, MinRand))
             {
-                // Debug.Log("Changed Direction");
-                MovePosition = PickRandomPoint();
-                CurrentPos = gameObject.transform.position; ;
-                if (CurrentPos.x + MovePosition.x > Bounds || CurrentPos.z + MovePosition.z > Bounds
-                    || CurrentPos.x + MovePosition.x < -Bounds || CurrentPos.z + MovePosition.z < -Bounds)
-                {
-                    // Debug.Log("Outside Range");
-                    MovePosition = PickRandomPoint();
-
-                }
+                transform.Rotate(0, transform.rotation.y + Random.Range(-90.0f, 90.0f), 0);
+                timer = 0.0f;
+            }
+            timer += Time.deltaTime;
+            if (((transform.position.x + (transform.forward.x * MaxSpeed * Time.deltaTime)) <= 50.0f)
+                && ((transform.position.x + (transform.forward.x * MaxSpeed * Time.deltaTime)) >= -50.0f)
+                && ((transform.position.z + (transform.forward.z * MaxSpeed * Time.deltaTime)) <= 50.0f)
+                && ((transform.position.z + (transform.forward.z * MaxSpeed * Time.deltaTime)) >= -50.0f))
+            {
+                transform.position += (transform.forward * MaxSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.Rotate(0, transform.rotation.y + Random.Range(-90.0f, 90.0f), 0);
+                timer = -3.0f;
             }
         }
-        gameObject.transform.position = Vector3.MoveTowards(transform.position, MovePosition, MaxSpeed * Time.deltaTime);
-        gameObject.transform.LookAt(MovePosition);
+        else
+        { 
+            gameObject.transform.position = Vector3.MoveTowards(transform.position, MovePosition, MaxSpeed * Time.deltaTime);
+            gameObject.transform.LookAt(MovePosition);
+            if(transform.position == MovePosition)
+            {
+                DontWander = false;
+            }
+        }
+            
 
-        Discontentment = (Hunger * Hunger) + (Thirst * Thirst);
+            Discontentment = (Hunger * Hunger) + (Thirst * Thirst);
         if (Hunger < 0) Hunger = 0;
         if (Thirst < 0) Thirst = 0;
 
         if (Discontentment >= Tolerance/4)
         {
-            Debug.Log("Require Sustenance");
+            //Debug.Log("Require Sustenance");
             Resources bestAction = null;
             int bestScore = 0;
             foreach (Resources i in resourceList)
@@ -143,11 +167,20 @@ public class Prey : MonoBehaviour
                 if(calculateScore(i) > bestScore)
                 {
                     bestScore = calculateScore(i);
-                    bestAction = i;
+                    if (NeedToMate <= bestScore)
+                    {
+                        bestAction = i;
+                    }
+                    else 
+                    {
+                        bestAction = null;
+                        Debug.Log("nulled");
+                    }
                 }
             }
 
-            if (bestAction != null) Seek(bestAction);
+            if (bestAction != null) Seek(bestAction.gameObject);
+            else { Reproduce(); }
             
         }
 
@@ -170,9 +203,15 @@ public class Prey : MonoBehaviour
         NeedTimer -= Time.deltaTime;
         if (NeedTimer <= 0.0f)
         {
-            Hunger += 1;
-            Thirst += 1;
+            Hunger += 0;
+            Thirst += 0;
+            NeedToMate += 100;
             NeedTimer = 6 - MaxSpeed;
+        }
+        if(NeedToMate >= Tolerance)
+        {
+            Debug.Log("Conditions Met");
+            Reproduce();
         }
     }
 
@@ -188,11 +227,12 @@ public class Prey : MonoBehaviour
 
         return point;
     }
-    public void Seek(Resources i)
+    public void Seek(GameObject i)
     {
-        Debug.Log("Looking");
+        //Debug.Log("Looking");
         if (i == null)
         {
+            Debug.Log("Wrongo");
             return; // something bad happened
         }
         else
@@ -203,14 +243,21 @@ public class Prey : MonoBehaviour
         }// if (transform.position == LastFoodSeen)
         if (Vector3.Distance(transform.position, i.transform.position) < 1.5f)
         {
-            Debug.Log("Arrived");
-            Consume(i);
-            DontWander = false;
+            //Debug.Log("Arrived");
+            if (i.GetComponent<Resources>())
+            {
+                Consume(i);
+                DontWander = false;
+            }
+            if(i.GetComponent<Prey>())
+            {
+                Debug.Log("The Magic of procreation");
+            }
         }
     }
     public void Flee(Predator_BT predator)
     {
-        Debug.Log("Running Away");
+        //Debug.Log("Running Away");
         DontWander = true;
         MovePosition = transform.position - (predator.transform.position - transform.position);
         
@@ -222,16 +269,43 @@ public class Prey : MonoBehaviour
     {
         Destroy(this.gameObject);
     }
+
     public void Reproduce()
     {
+        //DontWander = true;
+
+        GameObject closestMate = null;
+        Debug.Log("Afew");
+        foreach (GameObject p in preyList)
+        {
+            if (p == null)
+                this.preyList.Remove(p);
+
+            if (p != this.gameObject)
+            {
+                if (closestMate == null)
+                    closestMate = p;
+                if (Vector3.Distance(transform.position, p.transform.position) <
+                    (Vector3.Distance(transform.position, closestMate.transform.position)))
+                {
+                    closestMate = p;
+                }
+            }
+        }
+        if (closestMate != null)
+        {
+            Debug.Log("Not Null");
+            Seek(closestMate);
+        }
+        MovePosition = closestMate.transform.position;
         Debug.Log("Making Baby");
     }
 
-    public void Consume(Resources Resource)
+    public void Consume(GameObject Resource)
     {
         if (Vector3.Distance(transform.position, Resource.transform.position) < 1.5f)
         {
-            Debug.Log("In Range");
+            //Debug.Log("In Range");
             Collider[] hitInfo = Physics.OverlapSphere(transform.position, 
                                                     transform.localScale.magnitude * 2);
 
@@ -260,7 +334,7 @@ public class Prey : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Something is triggered");
+        //Debug.Log("Something is triggered");
 
     }
 
