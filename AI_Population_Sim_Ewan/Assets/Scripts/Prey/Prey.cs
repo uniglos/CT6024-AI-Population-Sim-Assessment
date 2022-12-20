@@ -19,7 +19,7 @@ public class Prey : MonoBehaviour
     //Traits-------------------------------
     public int Tolerance = 100;
 
-    public float MaxSpeed = 2f;
+    public float MaxSpeed = Random.Range(1.0f, 4.0f);
     public float MaxRand = 3f;
     public float MinRand = 0.5f;
 
@@ -68,10 +68,20 @@ public class Prey : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        HearingSphere.GetComponent<SphereCollider>().radius = Hearing;
+        
         CurrentPos = gameObject.transform.position;
         MovePosition = new Vector3(0.0f, 0.0f, 0.0f);
-        
+
+        //Randomizing Traits on spawn
+        MaxSpeed = Random.Range(1.0f, 5.0f);
+        MaxRand = Random.Range(3.0f, 5.0f);
+        MinRand = Random.Range(0.1f, 1.0f);
+        Tolerance = Random.Range(90, 110);
+
+        Vision = Random.Range(1, 2);
+        Hearing = Random.Range(1,20);
+
+        HearingSphere.GetComponent<SphereCollider>().radius = Hearing;
     }
 
     int calculateScore(Resources i)
@@ -117,11 +127,21 @@ public class Prey : MonoBehaviour
         if (DisplayPos)
         { Debug.Log(MovePosition); }
 
+        if(((transform.position.x >= 50.0f)
+            || ((transform.position.x <= -50.0f)
+            || ((transform.position.z >= 50.0f)
+            || ((transform.position.z <= -50.0f))))))
+        {
+            //If somehow gets out of bounds, get destroyed
+            Destroy(gameObject);
+        }
         if (DontWander == false)
         {
             //Debug.Log("Wandering");
             if (timer > Random.Range(MaxRand, MinRand))
             {
+                //Rotate randomly based on a timer(genes affect the time)
+                //then walk forward for random movement
                 transform.Rotate(0, transform.rotation.y + Random.Range(-90.0f, 90.0f), 0);
                 timer = 0.0f;
             }
@@ -131,16 +151,19 @@ public class Prey : MonoBehaviour
                 && ((transform.position.z + (transform.forward.z * MaxSpeed * Time.deltaTime)) <= 50.0f)
                 && ((transform.position.z + (transform.forward.z * MaxSpeed * Time.deltaTime)) >= -50.0f))
             {
+                //If within bounds walk forward
                 transform.position += (transform.forward * MaxSpeed * Time.deltaTime);
             }
             else
             {
+                //if not within bounds, try a new rotation
                 transform.Rotate(0, transform.rotation.y + Random.Range(-90.0f, 90.0f), 0);
                 timer = -3.0f;
             }
         }
         else
         { 
+            //If not wandering, look towards and go towards function set position
             gameObject.transform.position = Vector3.MoveTowards(transform.position, MovePosition, MaxSpeed * Time.deltaTime);
             gameObject.transform.LookAt(MovePosition);
             if(transform.position == MovePosition)
@@ -171,20 +194,13 @@ public class Prey : MonoBehaviour
                 if(calculateScore(i) > bestScore)
                 {
                     bestScore = calculateScore(i);
-                    if (NeedToMate <= bestScore)
-                    {
-                        bestAction = i;
-                    }
-                    else 
-                    {
-                        bestAction = null;
-                        Debug.Log("nulled");
-                    }
+                    bestAction = i;
+                    
                 }
             }
 
             if (bestAction != null) Seek(bestAction.gameObject);
-            else { Reproduce(); }
+            
             
         }
 
@@ -207,14 +223,14 @@ public class Prey : MonoBehaviour
         NeedTimer -= Time.deltaTime;
         if (NeedTimer <= 0.0f)
         {
-            Hunger += 1;
-            Thirst += 1;
-            NeedToMate += 1;
+            Hunger += 5;
+            Thirst += 5;
+            NeedToMate += 10;
             NeedTimer = 6 - MaxSpeed;
         }
         if(NeedToMate >= Tolerance)
         {
-            Debug.Log("Conditions Met");
+            Debug.Log("Conditions Met To Seek Mate");
             Reproduce();
         }
         if(Hunger >=Tolerance||Thirst>=Tolerance)
@@ -237,15 +253,15 @@ public class Prey : MonoBehaviour
     }
     public void Seek(GameObject i)
     {
+        //Go Towards whatever object is of importance
         //Debug.Log("Looking");
         if (i == null)
-        {
-            Debug.Log("Wrongo");
+        { 
             return; // something bad happened
         }
         else
         {
-            Debug.Log("Moving To ");
+            //Debug.Log("Moving To ");
             MovePosition = i.transform.position;
             DontWander = true;
         }// if (transform.position == LastFoodSeen)
@@ -259,8 +275,7 @@ public class Prey : MonoBehaviour
             }
             if(i.GetComponent<Prey>())
             {
-                Debug.Log("The Magic of procreation");
-                //Instatiate Function
+                //Debug.Log("The Magic of procreation");
                 NeedToMate = 0;
                 Procreate(gameObject,i);
             }
@@ -286,7 +301,7 @@ public class Prey : MonoBehaviour
         //DontWander = true;
 
         GameObject closestMate = null;
-        Debug.Log("Afew");
+
         foreach (GameObject p in preyList)
         {
             if (p == null)
@@ -305,11 +320,10 @@ public class Prey : MonoBehaviour
         }
         if (closestMate != null)
         {
-            Debug.Log("Not Null");
             Seek(closestMate);
         }
         MovePosition = closestMate.transform.position;
-        Debug.Log("Making Baby");
+        //Debug.Log("Making Baby");
     }
 
     public void Procreate(GameObject self, GameObject other)
@@ -317,7 +331,7 @@ public class Prey : MonoBehaviour
         bool hasProcreated = false;
         Prey SelfGenes = self.GetComponent<Prey>();
         Prey OtherGenes = other.GetComponent<Prey>();
-        //Mix genes
+        //Pass through and "Mix" genes
         float _MaxSpeed = Random.Range(SelfGenes.MaxSpeed, OtherGenes.MaxSpeed);
         float _MaxRand = Random.Range(SelfGenes.MaxRand, OtherGenes.MaxRand);
         float _MinRand = Random.Range(SelfGenes.MinRand, OtherGenes.MinRand);
@@ -325,9 +339,11 @@ public class Prey : MonoBehaviour
         int _Tolerance = Random.Range(SelfGenes.Tolerance, OtherGenes.Tolerance);
         if (hasProcreated == false)
         {
+            //Instance the offspring with the new traits
             GameObject prefabInstance = Instantiate(PreyPrefab);
             Prey ChildGenes = prefabInstance.GetComponent<Prey>();
 
+            ChildGenes.gameObject.layer = LayerMask.GetMask("Prey");
             ChildGenes.MaxSpeed = _MaxSpeed;
             ChildGenes.MaxRand = _MaxRand;
             ChildGenes.MinRand = _MinRand;

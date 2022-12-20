@@ -6,7 +6,7 @@ using PredatorTree;
 public class Predator_BT : BTree
 {
     //Traits------
-    public float speed = 3.0f;
+    public float speed = 4.0f;
     public float vision = 6.0f;
     //-------------------
     public int Hunger = 10;
@@ -26,12 +26,16 @@ public class Predator_BT : BTree
             //}),
             //Find Food action sequence
             new BT_Sequence(new List<Predator_Node>
+            
+            //Attempt to eat any possible food
             { new PBT_KillNEat(transform,gameObject),
             }),
             new BT_Sequence(new List<Predator_Node>
         {
-            
+            //look for food in sphere range
             new PBT_FindFood(transform, gameObject),
+
+            //"chase" down the food
             new PBT_Chase(transform, gameObject),
             
         }),

@@ -35,7 +35,8 @@ public class PBT_Chase : Predator_Node
         {
             if(target.position == new Vector3(0.0f,-1.0f,0.0f))
             {
-                Debug.Log("Weird Bug Maybe");
+                //Bugged due to the spawning system being the parent of all water nodes: would seek the parent location instead of the child's
+                //Rudimentary fix
                 ClearData("resource");
                 state = NodeState.FAILURE;
                 return state;
@@ -44,7 +45,7 @@ public class PBT_Chase : Predator_Node
             _transform.LookAt(target.position);
             Debug.Log("Still Chasing");
         }
-        if (Vector3.Distance(_transform.position, target.position) <= 0.1f)
+        if (Vector3.Distance(_transform.position, target.position) <= 1.0f)
         {
             Debug.Log("Finished Chasing");
             state = NodeState.SUCCESS;

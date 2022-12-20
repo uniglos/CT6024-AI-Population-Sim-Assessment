@@ -2,7 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 
 // Used this for generic Behaviour Tree
-//https://youtu.be/aR6wt5BlE-E
+//https://youtu.be/aR6wt5BlE-E 
+// Mina Pecheux, 2021
+//This node setup was found entirely here^
+//Along with the layout on Predator_BT
+
+//Adapted their code for CheckFOVInRange to FindFood
+//Adapted their TaskAttack code to KillNEat
 
 namespace PredatorTree
 {

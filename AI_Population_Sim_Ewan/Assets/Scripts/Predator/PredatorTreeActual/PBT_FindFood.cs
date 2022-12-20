@@ -36,6 +36,7 @@ public class PBT_FindFood : Predator_Node
                     if (r.TryGetComponent(out Prey i))
                     {
                         //Debug.Log("Found Prey");
+                        //Set the resource we found as the target to maintain track of it
                         parent.parent.SetData("resource", food[0].transform);
                         state = NodeState.SUCCESS;
                         return state;

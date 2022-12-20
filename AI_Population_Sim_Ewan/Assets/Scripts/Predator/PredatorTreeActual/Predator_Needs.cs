@@ -30,5 +30,12 @@ public class Predator_Needs : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        if (((transform.position.x >= 50.0f)
+            || ((transform.position.x <= -50.0f)
+            || ((transform.position.z >= 50.0f)
+            || ((transform.position.z <= -50.0f))))))
+        {
+            Destroy(gameObject);
+        }
     }
 }
